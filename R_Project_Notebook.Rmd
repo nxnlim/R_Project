@@ -345,5 +345,7 @@ These observations are where there is the most difference between the good price
  
 If I had more time, I would gather the data from the last few year and see if I get similar results. I believe that it would be different. There were not enough observations within the good price group to get a strong result. I would also scrape housing websites to gather more variables to compare to the good and bad price groups.
 
+I would also like to try doing this a different way. I would calculate the sale price per gross square foot and analyze all the variables based on this.
+
 
 

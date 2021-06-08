@@ -16,15 +16,19 @@ library(forcats)
 ```
 
 ```{r}
-nyc_prop_sales <- read.csv("nyc-rolling-sales.csv")
+nyc_prop_sales <- read.csv("./projectApp/nyc-rolling-sales.csv")
 ```
-I will define "profitable property" by:
-- a property that sold for lower than the average sale price of properties in the same neighborhood and of the same type (1bd apt, studio, house, etc).
-- a property that has an increasing property value and has a mortgage price that is less than the average rent price for that neighborhood and type.
+I defined a 'profitable property' by:
+- a property that sold for lower than the average sale price of properties in the same
+neighborhood and of the same type (1bd apt, studio, house, etc).
+- a property that has an increasing property value and has a mortgage price that is less than
+the average rent price for that neighborhood and type.
 
-Unfortunately, this dataset does not contain the right information to find the average rent price by neighborhood and property type.
+Unfortunately, this dataset does not contain the right information to find the average rent
+price by neighborhood and property type.
 
-For this project, I will focus on the properties with a below average sale price for their neighborhood and type.
+For this project, I will focus on the properties with a below average sale price for their
+neighborhood and type.
 
 1) Find the average and standard deviation of the sale price for each neighborhood and type and add them to the dataframe.
 
@@ -53,16 +57,16 @@ nyc_prop_sales %>% arrange(., sale_price)
 ```
 
 ```{r}
-# Create table including the avg sale price and avg standard deviation for each group, defined by the neighborhood and building class category. 
-# Also includes amount of property sales in these groups and keep only the top 100 groups based on amount of property sales. Anything with too few property sales can not be properly analysed.
+# Create table including the avg sale price and avg standard deviation for each group, defined by the neighborhood and building_class_at_tos. 
+# Also includes amount of property sales in these groups and keep only the top 100 groups based on amount of property sales. Anything with too few property sales can not be properly analyzed.
 nyc_prop_sales_100 = nyc_prop_sales %>%
   drop_na(., sale_price, gross_sqft) %>%
 group_by(., neighborhood, building_class_at_tos) %>%
 summarise(., avg_sale_price = mean(sale_price),
              sd_sale_price = sd(sale_price),
              amount = n(), 
-             avg_resi_units = mean(residential_units), 
-             avg_comm_units = mean(commercial_units), 
+             avg_residential_units = mean(residential_units), 
+             avg_commercial_units = mean(commercial_units), 
              avg_total_units = mean(total_units), 
              avg_land_sqft = round(mean(land_sqft)), 
              avg_gross_sqft = round(mean(gross_sqft)), 
@@ -90,18 +94,18 @@ nyc_prop_for_EDA %>% select(., contains("price"))
 ```{r}
 # Create ratio for multiple variables. The ratio is the variable divided by the average of the variable. The averages are found based on the neighborhood and building class category. Doing this makes the ratios account for the neighborhood and building class category so all the data can be observed together.
 nyc_prop_for_EDA = nyc_prop_for_EDA %>% mutate(., total_units = total_units, 
-                               ratio_resi_unit = residential_units / avg_resi_units, 
-                               ratio_comm_units = commercial_units / avg_comm_units, 
-                               ratio_total_units = total_units / avg_total_units, 
-                               ratio_land_sqft = land_sqft / avg_land_sqft, 
-                               ratio_gross_sqft = gross_sqft / avg_gross_sqft, 
-                               ratio_year_built = year_built / avg_year_built, 
-                               ratio_sale_price = sale_price / avg_sale_price, 
-                               good_price = as.factor(good_price)) # make good_price a discrete variable
+                    ratio_residential_units = residential_units / avg_residential_units, 
+                    ratio_commercial_units = commercial_units / avg_commercial_units, 
+                    ratio_total_units = total_units / avg_total_units, 
+                    ratio_land_sqft = land_sqft / avg_land_sqft, 
+                    ratio_gross_sqft = gross_sqft / avg_gross_sqft, 
+                    ratio_year_built = year_built / avg_year_built, 
+                    ratio_sale_price = sale_price / avg_sale_price, 
+                    good_price = as.factor(good_price)) # make good_price a discrete variable
 
 # Change null values in ratio_comm_units to 0. Many properties have avg_comm_units = 0.
 # This makes ratio_comm_units undefined, resulting in a null value.
-nyc_prop_for_EDA$ratio_comm_units[is.na(nyc_prop_for_EDA$ratio_comm_units)] = 0
+nyc_prop_for_EDA$ratio_commercial_units[is.na(nyc_prop_for_EDA$ratio_commercial_units)] = 0
 
 ```
 
@@ -109,8 +113,8 @@ nyc_prop_for_EDA$ratio_comm_units[is.na(nyc_prop_for_EDA$ratio_comm_units)] = 0
 ```{r}
 # Compare good price to not good price by:
 # - ratio_sale_price
-# - ratio_resi_unit 
-# - ratio_comm_units
+# - ratio_residential_units 
+# - ratio_commercial_units
 # - ratio_total_units
 # - ratio_land_sqft
 # - ratio_gross_sqft
@@ -120,7 +124,7 @@ nyc_prop_for_EDA$ratio_comm_units[is.na(nyc_prop_for_EDA$ratio_comm_units)] = 0
 ### ratio_sale_price
 
 nyc_prop_for_EDA %>% 
-  select(., building_class_category, 
+  select(., building_class_at_tos, 
          contains("sale_price"), 
          good_price) %>% 
   ggplot() + 
@@ -128,60 +132,60 @@ nyc_prop_for_EDA %>%
   coord_cartesian(ylim = c(0,4))
 
 nyc_prop_for_EDA %>% 
-  select(., building_class_category, 
+  select(., building_class_at_tos, 
          contains("sale_price"), 
          good_price) %>% 
   ggplot() + 
   geom_density(aes(x = ratio_sale_price, color = good_price))
 
-### ratio_resi_unit
+### ratio_residential_units
 
 nyc_prop_for_EDA %>%
-  select(., building_class_category,
-         contains("resi"),
+  select(., building_class_at_tos,
+         contains("residential_units"),
          good_price) %>%
   ggplot() +
-  geom_boxplot(aes(x = good_price, y = ratio_resi_unit, color = good_price)) +
+  geom_boxplot(aes(x = good_price, y = ratio_residential_units, color = good_price)) +
   coord_cartesian(ylim = c(0.9, 1.15))
 
 nyc_prop_for_EDA %>% 
-  select(., building_class_category, 
-         contains("resi"), 
+  select(., building_class_at_tos, 
+         contains("residential_units"), 
          good_price) %>% 
   ggplot() + 
-  geom_density(aes(x = ratio_resi_unit, color = good_price))
+  geom_density(aes(x = ratio_residential_units, color = good_price))
 
-###  ratio_comm_units
+###  ratio_commercial_units
 
 nyc_prop_for_EDA %>%
-  select(., building_class_category,
-         contains("comm"),
+  select(., building_class_at_tos,
+         contains("commercial_units"),
          good_price) %>%
   ggplot() +
-  geom_boxplot(aes(x = good_price, y = ratio_comm_units, color = good_price)) +
+  geom_boxplot(aes(x = good_price, y = ratio_commercial_units, color = good_price)) +
   coord_cartesian(ylim = c(0,100))
 
 nyc_prop_for_EDA %>% 
-  select(., building_class_category, 
-         contains("comm"), 
+  select(., building_class_at_tos, 
+         contains("commercial_units"), 
          good_price) %>% 
   ggplot() + 
-  geom_density(aes(x = ratio_comm_units, color = good_price)) +
+  geom_density(aes(x = ratio_commercial_units, color = good_price)) +
   coord_cartesian(xlim = c(0,60))
 
 ### ratio_total_units
 
 nyc_prop_for_EDA %>%
-  select(., building_class_category,
-         contains("total"),
+  select(., building_class_at_tos,
+         contains("total_units"),
          good_price) %>%
   ggplot() +
   geom_boxplot(aes(x = good_price, y = ratio_total_units, color = good_price)) +
   coord_cartesian(ylim = c(0,2.25))
 
 nyc_prop_for_EDA %>% 
-  select(., building_class_category, 
-         contains("total"), 
+  select(., building_class_at_tos, 
+         contains("total_units"), 
          good_price) %>% 
   ggplot() + 
   geom_density(aes(x = ratio_total_units, color = good_price))
@@ -189,7 +193,7 @@ nyc_prop_for_EDA %>%
 ### ratio_land_sqft
 
 nyc_prop_for_EDA %>% 
-  select(., building_class_category, 
+  select(., building_class_at_tos, 
          contains("land_sqft"), 
          good_price) %>% 
   ggplot() + 
@@ -197,7 +201,7 @@ nyc_prop_for_EDA %>%
   coord_cartesian(ylim = c(0,5))
 
 nyc_prop_for_EDA %>% 
-  select(., building_class_category, 
+  select(., building_class_at_tos, 
          contains("land_sqft"), 
          good_price) %>% 
   ggplot() + 
@@ -206,14 +210,14 @@ nyc_prop_for_EDA %>%
 ### ratio_gross_sqft
 
 nyc_prop_for_EDA %>% 
-  select(., building_class_category, 
+  select(., building_class_at_tos, 
          contains("gross_sqft"), 
          good_price) %>% 
   ggplot() + 
   geom_boxplot(aes(x = good_price, y = ratio_gross_sqft, color = good_price))
 
 nyc_prop_for_EDA %>% 
-  select(., building_class_category, 
+  select(., building_class_at_tos, 
          contains("gross_sqft"), 
          good_price) %>% 
   ggplot() + 
@@ -229,7 +233,7 @@ nyc_prop_for_EDA %>%
   geom_boxplot(aes(x = good_price, y = ratio_year_built, color = good_price))
 
 nyc_prop_for_EDA %>% 
-  select(., building_class_category, 
+  select(., building_class_at_tos, 
          contains("year_built"), 
          good_price) %>% 
   ggplot() + 
@@ -322,30 +326,56 @@ nyc_prop_for_EDA %>%
 
 # These tables and graphs also show little to no difference in the trend of properties with a good price and properties with a bad price, within each variable. Each variable has a corresponding table and graph.
 
-# "BOROUGH PARK", "FLUSHING-NORTH", "BAYSIDE", "JACKSON HEIGHTS", "BUSHWICK", "ST. ALBANS", "FAR ROCKAWAY", "ARVERNE", "WILLIAMSBRIDGE", "PORT RICHMOND"
+write.csv(nyc_prop_for_EDA, "./projectApp/nyc_prop_for_EDA.csv")
 ```
 
 Conclusion:
-The variables in this dataset does have an influence on the price of a property, but they have no influence on how profitable a property is. I took the variables and took into account the neighborhood and building class (at time of sale) for each variable by dividing the variable by its corresponding average, again, based on its neighborhood and building class. For example, for a property's sale price, I would find all the properties that was in its neighborhood and building class. Then take the average of their sale price and divide that property's sale price by the average sale price I found.
+The variables in this dataset does have an influence on the price of a property, but they have
+no influence on how profitable a property is. I took the variables and took into account the
+neighborhood and building class (at time of sale) for each variable by dividing the variable by
+its corresponding average, again, based on its neighborhood and building class. For example,
+for a property's sale price, I would find all the properties that was in its neighborhood and
+building class. Then take the average of their sale price and divide that property's sale price
+by the average sale price I found.
 
-I used this method with every grouping of neighborhood and building class and applied it to all the numeric variables of all the properties. I also found the avg standard deviation of the sale price. If a property had a sale price that was below one standard deviation less than its average sale price, it would be considered a good priced property. I separated my dataset this way into 2 groups, good price and bad price.
+I used this method with every grouping of neighborhood and building class and applied it to all
+the numeric variables of all the properties. I also found the avg standard deviation of the
+sale price. If a property had a sale price that was below one standard deviation less than its
+average sale price, it would be considered a good priced property. I separated my dataset this
+way into 2 groups, good price and bad price.
 
-I did my exploratory data analysis. With all the numeric variables, I made boxplots and density plots. Every single variable showed the same trend between the good price and bad price group. This showed that these variables had no effect on having a "good price".
+I did my exploratory data analysis. With all the numeric variables, I made boxplots and density
+plots. Every single variable showed the same trend between the good price and bad price group.
+This showed that these variables had no effect on having a "good price".
 
-I also made bar graphs for each of the categorical variables. The variables had a similar ratio of amount of good price to bad price properties. When comparing the top and bottom 5 observations, there is a more noticable difference. A few observations in each variable stood higher than the others, which are as follows:
+
+I also made bar graphs for each of the categorical variables. The variables had a similar ratio
+of amount of good price to bad price properties. When comparing the top and bottom 5
+observations, there is a more noticable difference. A few observations in each variable stood
+higher than the others, which are as follows:
 
  - borough:         Bronx
  - neighborhood:    Port Richmond, Williamsburg
  - building class:  A9, B3
  - zip code:        10303, 11377
  
- The tables that were created did a better job in showing where not to by property. The lowest ratio_gp had terrible chances of having a profitable property.
+ The tables that were created did a better job in showing where not to by property. The lowest
+ ratio_gp had terrible chances of having a profitable property.
  
-These observations are where there is the most difference between the good price and bad price groups. More analysis is required to know exactly how viable this information is.
+These observations are where there is the most difference between the good price and bad price
+groups. More analysis is required to know exactly how viable this information is.
  
-If I had more time, I would gather the data from the last few year and see if I get similar results. I believe that it would be different. There were not enough observations within the good price group to get a strong result. I would also scrape housing websites to gather more variables to compare to the good and bad price groups.
+If I had more time, I would gather the data from the last few year and see if I get similar
+results. I believe that it would be different. There were not enough observations within the
+good price group to get a strong result. I would also scrape housing websites to gather more
+variables to compare to the good and bad price groups.
 
-I would also like to try doing this a different way. I would calculate the sale price per gross square foot and analyze all the variables based on this.
+I would also like to try doing this a different way. I would calculate the sale price per gross
+square foot and analyze all the variables based on this.
 
+
+```{r}
+names(nyc_prop_for_EDA %>% select(., borough, neighborhood, building_class_category, zip_code))
+```
 
 
